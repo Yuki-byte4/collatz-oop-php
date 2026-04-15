@@ -1,0 +1,22 @@
+<?php
+function collatz($x){
+    $i = 0;
+
+    while ($i < 10){
+        if ($x % 2 == 0){
+            $x = $x / 2;
+        } else {
+            $x = 3 * $x + 1;
+        }
+        $i++;
+    }
+
+    return $x;
+}
+
+// test value
+$x = 6;
+
+// print result
+echo collatz($x);
+?>
