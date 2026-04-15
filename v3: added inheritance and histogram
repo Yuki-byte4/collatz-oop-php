@@ -1,0 +1,125 @@
+--Collatz.php--
+<?php
+class Collatz {
+    protected int $startNumber;
+    protected array $results = [];
+
+    const STOP_VALUE = 1;
+    const EVEN_DIV = 2;
+
+    public function __construct(int $startNumber) {
+        $this->startNumber = $startNumber;
+    }
+
+    public function calculate(int $number): array {
+        $current = $number;
+        $iterations = 0;
+        $maxValue = $number;
+
+        while ($current != self::STOP_VALUE) {
+            if ($current % self::EVEN_DIV == 0) {
+                $current /= self::EVEN_DIV;
+            } else {
+                $current = 3 * $current + 1;
+            }
+            $iterations++;
+            if ($current > $maxValue) $maxValue = $current;
+        }
+
+        return [
+            'iterations' => $iterations,
+            'max' => $maxValue
+        ];
+    }
+
+    public function calculateInterval(int $start, int $end): void {
+        $this->results = [];
+
+        for ($i = $start; $i <= $end; $i++) {
+            $this->results[$i] = $this->calculate($i);
+        }
+    }
+
+    public function statistics(): array {
+        $maxIter = ['number' => 0, 'iterations' => -1];
+        $minIter = ['number' => 0, 'iterations' => PHP_INT_MAX];
+        $maxVal = ['number' => 0, 'max' => -1];
+
+        foreach ($this->results as $num => $data) {
+            if ($data['iterations'] > $maxIter['iterations']) {
+                $maxIter = ['number' => $num, 'iterations' => $data['iterations']];
+            }
+            if ($data['iterations'] < $minIter['iterations']) {
+                $minIter = ['number' => $num, 'iterations' => $data['iterations']];
+            }
+            if ($data['max'] > $maxVal['max']) {
+                $maxVal = ['number' => $num, 'max' => $data['max']];
+            }
+        }
+
+        return [
+            'max_iterations' => $maxIter,
+            'min_iterations' => $minIter,
+            'max_value_reached' => $maxVal
+        ];
+    }
+}
+?>
+
+--CollatzStats.php(childs class)--
+<?php
+include 'Collatz.php';
+
+class CollatzStats extends Collatz {
+
+    const HISTOGRAM_SYMBOL = "*";
+
+    // New method: histogram
+    public function histogram(): array {
+        $hist = [];
+
+        foreach ($this->results as $num => $data) {
+            $iter = $data['iterations'];
+
+            if (!isset($hist[$iter])) {
+                $hist[$iter] = 0;
+            }
+            $hist[$iter]++;
+        }
+
+        ksort($hist);
+        return $hist;
+    }
+
+    // Display histogram
+    public function displayHistogram(): void {
+        $hist = $this->histogram();
+
+        foreach ($hist as $iter => $count) {
+            echo str_pad($iter, 5, " ", STR_PAD_LEFT) . " : ";
+            echo str_repeat(self::HISTOGRAM_SYMBOL, $count);
+            echo " ($count)\n";
+        }
+    }
+}
+?>
+
+--index.php--
+<?php
+include 'CollatzStats.php';
+
+$start = 25;
+$end = 100;
+
+$collatz = new CollatzStats($start);
+
+// calculate interval
+$collatz->calculateInterval($start, $end);
+
+// statistics
+print_r($collatz->statistics());
+
+// histogram
+echo "\nHistogram:\n";
+$collatz->displayHistogram();
+?>
