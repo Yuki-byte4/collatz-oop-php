@@ -1,0 +1,94 @@
+--Collatz.php--
+<?php
+class Collatz {
+    private int $startNumber;
+    private array $results = [];
+
+    // Constructor
+    public function __construct(int $startNumber) {
+        $this->startNumber = $startNumber;
+    }
+
+    // Calculate for one number
+    public function calculate(int $number): array {
+        $current = $number;
+        $iterations = 0;
+        $maxValue = $number;
+
+        while ($current != 1) {
+            if ($current % 2 == 0) {
+                $current /= 2;
+            } else {
+                $current = 3 * $current + 1;
+            }
+            $iterations++;
+            if ($current > $maxValue) $maxValue = $current;
+        }
+
+        return [
+            'iterations' => $iterations,
+            'max' => $maxValue
+        ];
+    }
+
+    // Calculate for interval
+    public function calculateInterval(int $start, int $end): void {
+        $this->results = [];
+
+        for ($i = $start; $i <= $end; $i++) {
+            $this->results[$i] = $this->calculate($i);
+        }
+    }
+
+    // Show results
+    public function displayResults(): void {
+        foreach ($this->results as $num => $data) {
+            echo "Number: $num, Iterations: {$data['iterations']}, Max: {$data['max']}\n";
+        }
+    }
+
+    // Statistics
+    public function statistics(): array {
+        $maxIter = ['number' => 0, 'iterations' => -1];
+        $minIter = ['number' => 0, 'iterations' => PHP_INT_MAX];
+        $maxVal = ['number' => 0, 'max' => -1];
+
+        foreach ($this->results as $num => $data) {
+            if ($data['iterations'] > $maxIter['iterations']) {
+                $maxIter = ['number' => $num, 'iterations' => $data['iterations']];
+            }
+            if ($data['iterations'] < $minIter['iterations']) {
+                $minIter = ['number' => $num, 'iterations' => $data['iterations']];
+            }
+            if ($data['max'] > $maxVal['max']) {
+                $maxVal = ['number' => $num, 'max' => $data['max']];
+            }
+        }
+
+        return [
+            'max_iterations' => $maxIter,
+            'min_iterations' => $minIter,
+            'max_value_reached' => $maxVal
+        ];
+    }
+}
+?>
+
+--index.php--
+<?php
+include 'Collatz.php';
+
+$start = 25;
+$end = 100;
+
+$collatz = new Collatz($start);
+
+// run calculations
+$collatz->calculateInterval($start, $end);
+
+// show results (optional)
+$collatz->displayResults();
+
+// show statistics (important)
+print_r($collatz->statistics());
+?>
